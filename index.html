@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teachable Machine Voice Model</title>
+    <!-- Cargar TensorFlow.js y la librería de Teachable Machine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/sound"></script>
+</head>
+<body>
+    <h1>Reconocimiento de voz con Teachable Machine</h1>
+    <p>Haz clic en el botón para comenzar el reconocimiento de voz:</p>
+    <button onclick="init()">Iniciar reconocimiento</button>
+    <h2 id="resultado">Esperando reconocimiento...</h2>
+
+    <script type="text/javascript">
+        // URL del modelo exportado (reemplaza esto con la ruta correcta)
+        const URL = "C:\Users\juand\OneDrive\Documentos\MODELO_TM\tm-my-audio-model\";
+
+        let model, microphone;
+
+        async function init() {
+            // Cargar el modelo de Teachable Machine
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmSound.load(modelURL, metadataURL);
+            microphone = new tmSound.Microphone();
+
+            await microphone.setup();  // Pide permiso para usar el micrófono
+            microphone.play();  // Empieza a capturar el audio
+
+            // Comenzar el reconocimiento de voz
+            window.requestAnimationFrame(loop);
+        }
+
+        async function loop() {
+            const prediction = await model.predict(microphone);
+            const classPrediction = prediction[0].className + ": " + prediction[0].probability.toFixed(2);
+            document.getElementById("resultado").innerText = classPrediction;
+
+            // Llamar al ciclo nuevamente
+            window.requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>
