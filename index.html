@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teachable Machine Voice Model</title>
-    <!-- Cargar TensorFlow.js y la librería de Teachable Machine -->
+    <!-- Cargar TensorFlow.js y la librería de Teachable Machine Sound -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/sound"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/sound@0.8.4/dist/teachablemachine-sound.min.js"></script>
 </head>
 <body>
     <h1>Reconocimiento de voz con Teachable Machine</h1>
@@ -15,33 +15,41 @@
     <h2 id="resultado">Esperando reconocimiento...</h2>
 
     <script type="text/javascript">
-        // URL del modelo exportado (reemplaza esto con la ruta correcta)
-        const URL = "https://github.com/Juan-Mrn7/projecto/blob/main/";
+        const URL = "https://juan-mrn7.github.io/projecto/"; // Asegúrate de que esta URL sea correcta
 
         let model, microphone;
 
         async function init() {
-            // Cargar el modelo de Teachable Machine
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
+            console.log("Iniciando el reconocimiento...");
+            try {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
 
-            model = await tmSound.load(modelURL, metadataURL);
-            microphone = new tmSound.Microphone();
+                model = await tmSound.load(modelURL, metadataURL);
+                console.log("Modelo cargado correctamente");
 
-            await microphone.setup();  // Pide permiso para usar el micrófono
-            microphone.play();  // Empieza a capturar el audio
+                microphone = new tmSound.Microphone();
 
-            // Comenzar el reconocimiento de voz
-            window.requestAnimationFrame(loop);
+                await microphone.setup();  // Pedir permiso para el micrófono
+                microphone.play();  // Iniciar la captura de audio
+
+                console.log("Micrófono configurado y capturando audio");
+                window.requestAnimationFrame(loop);
+            } catch (error) {
+                console.error("Error durante la inicialización:", error);
+            }
         }
 
         async function loop() {
-            const prediction = await model.predict(microphone);
-            const classPrediction = prediction[0].className + ": " + prediction[0].probability.toFixed(2);
-            document.getElementById("resultado").innerText = classPrediction;
+            try {
+                const prediction = await model.predict(microphone);
+                const classPrediction = prediction[0].className + ": " + prediction[0].probability.toFixed(2);
+                document.getElementById("resultado").innerText = classPrediction;
 
-            // Llamar al ciclo nuevamente
-            window.requestAnimationFrame(loop);
+                window.requestAnimationFrame(loop);
+            } catch (error) {
+                console.error("Error en la predicción:", error);
+            }
         }
     </script>
 </body>
