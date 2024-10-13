@@ -7,9 +7,50 @@
     <!-- Cargar TensorFlow.js y la librería de Teachable Machine Sound -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/sound@0.8.3/dist/teachablemachine-sound.min.js"></script>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1, h2 {
+            font-size: 2.5em;
+        }
+        h1 span {
+            color: yellow;
+        }
+        p {
+            font-size: 1.5em;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background-color: yellow;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: black;
+        }
+        button:hover {
+            background-color: orange;
+        }
+        #resultado {
+            margin-top: 30px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Reconocimiento de voz con Teachable Machine</h1>
+    <h1>Reconocimiento de voz con <span>Juan</span> y <span>Valentina</span></h1>
     <p>Haz clic en el botón para comenzar el reconocimiento de voz:</p>
     <button onclick="init()">Iniciar reconocimiento</button>
     <h2 id="resultado">Esperando reconocimiento...</h2>
