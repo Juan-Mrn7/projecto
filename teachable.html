@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teachable Machine Voice Model</title>
-    <!-- Cargar TensorFlow.js y la librería de Teachable Machine Sound -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/sound@0.8.3/dist/teachablemachine-sound.min.js"></script>
+    <title>Reconocimiento de voz con Juan y Valentina</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
         body {
             background-color: black;
@@ -20,14 +19,12 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
-        h1, h2 {
-            font-size: 2.5em;
+        div.title {
+            font-size: 3em;
+            margin-bottom: 20px;
         }
-        h1 span {
+        div.title span {
             color: yellow;
-        }
-        p {
-            font-size: 1.5em;
         }
         button {
             padding: 15px 30px;
@@ -42,55 +39,68 @@
         button:hover {
             background-color: orange;
         }
-        #resultado {
+        #label-container {
             margin-top: 30px;
-            font-size: 2em;
-            font-weight: bold;
+            font-size: 1.5em;
         }
     </style>
 </head>
 <body>
-    <h1>Reconocimiento de voz con <span>Juan</span> y <span>Valentina</span></h1>
-    <p>Haz clic en el botón para comenzar el reconocimiento de voz:</p>
-    <button onclick="init()">Iniciar reconocimiento</button>
-    <h2 id="resultado">Esperando reconocimiento...</h2>
+    <div class="title">Reconocimiento de voz con <span>Juan</span> y <span>Valentina</span></div>
+    <button type="button" onclick="init()">Iniciar reconocimiento</button>
+    <div id="label-container"></div>
 
     <script type="text/javascript">
-        const URL = "https://juan-mrn7.github.io/projecto/"; // Asegúrate de que esta URL sea correcta
+        // más documentación disponible en
+        // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
 
-        let model, microphone;
+        // enlace al modelo exportado de Teachable Machine
+        const URL = "https://juan-mrn7.github.io/projecto/";
 
-        async function init() {
-            console.log("Iniciando el reconocimiento...");
-            try {
-                const modelURL = URL + "model.json";
-                const metadataURL = URL + "metadata.json";
+        async function createModel() {
+            const checkpointURL = URL + "model.json"; // topología del modelo
+            const metadataURL = URL + "metadata.json"; // metadatos del modelo
 
-                model = await tmSound.load(modelURL, metadataURL);
-                console.log("Modelo cargado correctamente");
+            const recognizer = speechCommands.create(
+                "BROWSER_FFT", // tipo de transformada de Fourier
+                undefined, // vocabulario de comandos de voz
+                checkpointURL,
+                metadataURL
+            );
 
-                microphone = new tmSound.Microphone();
+            // asegurar que el modelo y los metadatos se han cargado correctamente
+            await recognizer.ensureModelLoaded();
 
-                await microphone.setup();  // Pedir permiso para el micrófono
-                microphone.play();  // Iniciar la captura de audio
-
-                console.log("Micrófono configurado y capturando audio");
-                window.requestAnimationFrame(loop);
-            } catch (error) {
-                console.error("Error durante la inicialización:", error);
-            }
+            return recognizer;
         }
 
-        async function loop() {
-            try {
-                const prediction = await model.predict(microphone);
-                const classPrediction = prediction[0].className + ": " + prediction[0].probability.toFixed(2);
-                document.getElementById("resultado").innerText = classPrediction;
-
-                window.requestAnimationFrame(loop);
-            } catch (error) {
-                console.error("Error en la predicción:", error);
+        async function init() {
+            const recognizer = await createModel();
+            const classLabels = recognizer.wordLabels(); // obtener las etiquetas de clases
+            const labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < classLabels.length; i++) {
+                labelContainer.appendChild(document.createElement("div"));
             }
+
+            // listen() toma dos argumentos:
+            // 1. Una función callback que se invoca cuando se reconoce una palabra.
+            // 2. Un objeto de configuración con campos ajustables.
+            recognizer.listen(result => {
+                const scores = result.scores; // probabilidad de predicción por clase
+                // renderizar las probabilidades por clase
+                for (let i = 0; i < classLabels.length; i++) {
+                    const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }
+            }, {
+                includeSpectrogram: true, // devolver result.spectrogram si es necesario
+                probabilityThreshold: 0.75,
+                invokeCallbackOnNoiseAndUnknown: true,
+                overlapFactor: 0.50 // generalmente entre 0.5 y 0.75
+            });
+
+            // Detener el reconocimiento en 5 segundos si lo deseas.
+            // setTimeout(() => recognizer.stopListening(), 5000);
         }
     </script>
 </body>
